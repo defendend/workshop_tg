@@ -88,6 +88,18 @@ ast-index class --pattern "*Premium*"
 
 Если я попрошу “запусти агентов”, используй для каждого режима его собственный agent-файл как source of truth.
 
+Если я попрошу “запусти первый этап”, “первый сценарий” или “новый прогон первого сценария”, сначала прочитай:
+
+- `/Users/defendend/workshop/FIRST_WORKSHOP_STEP.md`
+
+Если я попрошу “запусти второй этап”, “второй workflow”, “собери architecture map” или “собери карты проекта”, сначала прочитай:
+
+- `/Users/defendend/workshop/SECOND_WORKSHOP_STEP.md`
+
+Если я попрошу “запусти третий этап”, “третий workflow” или “map-guided planning”, сначала прочитай:
+
+- `/Users/defendend/workshop/THIRD_WORKSHOP_STEP.md`
+
 После завершения пары тредов для оценки используй отдельный операторский файл:
 
 - `/Users/defendend/workshop/JUDGE_BENCHMARK.md`

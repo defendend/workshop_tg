@@ -95,6 +95,12 @@ ast-index rebuild --sub-projects
 
 ## Как запускать
 
+Для конкретных этапов воркшопа используй отдельные операторские файлы:
+
+- первый этап / benchmark `grep-only` vs `AST first, grep confirm`: `/Users/defendend/workshop/FIRST_WORKSHOP_STEP.md`
+- второй этап / reusable project architecture maps для будущих AI-агентов: `/Users/defendend/workshop/SECOND_WORKSHOP_STEP.md`
+- третий этап / map-guided implementation planning: `/Users/defendend/workshop/THIRD_WORKSHOP_STEP.md`
+
 Для валидного воркшоп-прогона:
 
 - `grep-only` запускать отдельным локальным thread
