@@ -14,18 +14,57 @@
 Что нужно сделать:
 
 1. Найти entry points этой фичи в Android и iOS.
-2. Найти основные классы/типы/файлы, отвечающие за UI, navigation/routing, бизнес-логику и data flow.
-3. Показать, как фича активируется из продукта: экран, действие пользователя, deep link, настройка или другой trigger.
-4. Сравнить архитектурный подход между Android и iOS:
-   - где живет UI
-   - где живет state
-   - где выполняются side effects
-   - где сеть/хранилище
-5. Дать короткую таблицу:
+2. Показать, как фича активируется из продукта:
+   - экран
+   - действие пользователя
+   - deep link / push / системное событие / настройка, если есть
+3. Найти основные артефакты по слоям:
+   - UI / presentation
+   - navigation / routing
+   - orchestration / coordinator / manager / service layer
+   - state owner / session owner
+   - network / protocol / storage / cache
+   - platform / OS integration
+4. Для каждой платформы восстановить end-to-end execution path:
+   - первый пользовательский trigger
+   - первый кодовый hop
+   - центральный orchestrator
+   - как доходит до network/runtime side effects
+   - как результат возвращается обратно в UI
+5. Показать архитектурные boundaries:
+   - какие модули / директории / типы образуют feature boundary
+   - какой слой является source of truth
+   - какие API или типы являются “узким горлом” фичи
+6. Показать state/data model:
+   - где хранится состояние
+   - кто имеет право его менять
+   - как state propagates между слоями
+   - есть ли state machine / enum states / lifecycle phases
+7. Показать side effects:
+   - network / protocol calls
+   - persistence / cache / preferences
+   - background work / notifications
+   - audio/video/media runtime
+   - OS integration
+8. Показать gating / restrictions / error / fallback paths:
+   - permissions
+   - privacy / feature flags / availability checks
+   - active-session conflicts
+   - unsupported-version / offline / disabled-integration cases
+   - fallback UI / alerts / recovery behavior
+9. Если у фичи есть явные subflows или variants, выделить их отдельно.
+   Примеры:
+   - 1:1 vs group
+   - voice vs video
+   - outgoing vs incoming
+   - in-app vs system-mediated flow
+10. Дать короткую таблицу:
    - Android artifact
    - iOS artifact
+   - слой
    - роль в системе
-6. Отдельно перечислить 3-5 самых полезных находок, которые реально помогли быстро локализовать фичу.
+11. Отдельно перечислить 3-5 самых полезных находок, которые реально помогли локализовать архитектуру фичи.
+12. Если есть места, где доказательств не хватает, явно пометить их как uncertainty, а не заполнять догадкой.
 
 Формат ответа:
 
@@ -33,7 +72,13 @@
 - Android
 - iOS
 - сравнение
+- `Architecture Map`
+- `State And Flow`
+- `Side Effects And OS Integration`
+- `Variants / Subflows`
 - таблица артефактов
+- `High-Value Findings`
+- `Uncertainties`
 - список использованных поисковых команд в точном виде
 
 Если доказательств недостаточно, так и напиши. Не выдумывай связи, которые не подтверждены найденными файлами или символами.

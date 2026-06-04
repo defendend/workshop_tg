@@ -97,11 +97,12 @@ ast-index ...
 
 Начинай сразу с реального AST-discovery по фиче.
 
-Для кейса `voice/video calls`:
+Для фичи с несколькими словами:
 
-- не делай обязательный отдельный `search "video calls"` как smoke-check
-- начинай сразу с коротких AST-friendly токенов вроде `call`, `calls`, `voice`, `video`, `VoIP`
-- переходи к `class`, `file`, `symbol`, `usages`, `callers`, `outline` по мере сигнала
+- не делай обязательный отдельный smoke-check по полной человеческой фразе
+- сначала сам нормализуй имя фичи в более короткие AST-friendly токены, паттерны или structural формы
+- маршрут выбирай сам: можно стартовать через `search`, `agrep`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
+- если после первых находок становится понятна форма вызова или сигнатуры, можно сразу переходить к structural pattern search через `agrep`
 
 `pwd`, `ast-index db-path`, `ast-index stats`, `ast-index rebuild --sub-projects` допустимы только как recovery/diagnostics, если:
 
@@ -153,7 +154,8 @@ ast-index rebuild --sub-projects
 Правило простое:
 
 - любые прямые команды `ast-index` разрешены
-- `search` обязателен как первый маршрут discovery
+- маршрут discovery агент выбирает сам
+- не фиксируй обязательную последовательность subcommand-ов; переключайся между маршрутами по силе сигнала
 - запрещены только не-`ast-index` поисковые механики
 
 Android XML/resource rule:
@@ -179,14 +181,12 @@ ast-index outline <file>
 3. Все AST-команды по умолчанию выполняй из `/Users/defendend/workshop`
 4. Если решишь использовать AST из подпроекта и видишь anomaly, отдельно проверь `pwd`, `db-path`, `stats` как диагностику
 5. Сначала сделай discovery по имени фичи и его словоформам
-6. Начинай discovery именно с `search`
-7. Но не начинай с многословного `search` по человеческой фразе целиком
-8. Сначала нормализуй фичу в короткие токены и паттерны вроде `call`, `calls`, `voice`, `video`, `VoIP`
-9. Первые AST-запросы должны сразу работать на discovery по таким коротким нормализованным токенам, без обязательного smoke-check
-10. После первых `search` переходи к `class`, `file`, `symbol`, а затем к `usages`, `callers`, `outline`
-11. Если `search` на одном токене ведет себя странно, не зависай на его диагностике в середине benchmark-прогона: попробуй следующий нормализованный `search`, затем продолжай discovery через `class`, `file`, `symbol`, `usages`, `callers`, `outline`
-12. Не запускай `ast-index rebuild --sub-projects` только из-за странного `search`/`file`/`symbol`; сначала трактуй это как возможную anomaly и продолжай discovery другими AST-маршрутами
-13. Затем углубляйся через:
+6. Нормализуй имя фичи в более короткие AST-friendly якоря, токены или паттерны без заранее заданного словаря
+7. Выбери любой подходящий AST-маршрут для первого захода: `search`, `agrep`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
+8. Не начинай с многословного человеческого запроса или паттерна целиком, если его еще не сузил в более рабочую форму
+9. Если один маршрут дал слабый сигнал, шум или пустой результат, не зацикливайся: переходи на другой AST-маршрут
+10. Не запускай `ast-index rebuild --sub-projects` только из-за странного `search`/`file`/`symbol`/`agrep`; сначала трактуй это как возможную anomaly и продолжай discovery другими AST-маршрутами
+11. Затем углубляйся через:
    - `usages`
    - `refs`
    - `callers`
@@ -194,17 +194,15 @@ ast-index outline <file>
    - `implementations`
    - `hierarchy`
    - `module`
-14. Для Android/iOS артефактов используй также:
+12. Для Android/iOS артефактов используй также:
    - `xml-usages`
    - `resource-usages`
    - `swiftui`
    - `async-funcs`
-15. Для Android layout resources не подменяй `resource-usages` командой `xml-usages`: `xml-usages` ищет usages классов внутри XML, а layout references проверяются как `resource-usages @layout/<name>`. Например: `resource-usages @layout/call_notification`.
-16. После первого осмысленного попадания в каждом репозитории найди не больше двух независимых якорей:
-   - один UI/entry point
-   - один data/model/service anchor
-17. Читай исходники только точечно, когда AST уже привел тебя к конкретному файлу или символу
-18. Как только у тебя есть entry point, 2-4 ключевых файла и понятный trigger, прекращай расширять поиск
+13. Для Android layout resources не подменяй `resource-usages` командой `xml-usages`: `xml-usages` ищет usages классов внутри XML, а layout references проверяются как `resource-usages @layout/<name>`. Например: `resource-usages @layout/call_notification`.
+14. Читай исходники только точечно, когда AST уже привел тебя к конкретному файлу или символу
+15. Расширяй поиск только пока это реально добавляет доказательства для сравнения Android vs iOS
+16. Останавливайся, когда у тебя уже достаточно подтвержденных артефактов и связей, чтобы уверенно покрыть требуемые разделы ответа
 
 ## Что нужно сделать
 

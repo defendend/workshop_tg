@@ -12,7 +12,7 @@
   - `grep-only`
   - `ast-only`
 
-## Базовая рекомендация по анализу
+## Режимы анализа
 
 Есть два разных сценария:
 
@@ -22,17 +22,6 @@
 Для benchmark:
 
 - режимы нужно держать раздельно и не смешивать
-
-Для практического рабочего анализа:
-
-- preferred sequence:
-  1. `ast-index` first
-  2. `grep` second only for literal/details confirmation
-
-Это означает:
-
-- AST лучше как структурная разведка
-- grep лучше как слой подтверждения строк, manifest/plist/resource details и literal-констант
 
 ## Главный принцип AST
 
@@ -158,28 +147,21 @@ rg -n "premium" .
 
 1. entry points
 2. user flow end-to-end
-3. gating / premium checks / restrictions / flags
-4. state and data flow
-5. side effects: network, persistence, cache, updates
-6. UI composition
-7. ключевые различия Android vs iOS
+3. architecture / module boundaries
+4. central orchestrator / state owner
+5. gating / restrictions / flags
+6. state and data flow
+7. side effects: network, persistence, cache, updates, OS integration
+8. UI composition
+9. variants / subflows
+10. ключевые различия Android vs iOS
 
-## Ближайший план
+## Нейтральность benchmark
 
-Для следующего прогона:
+В thread-facing инструкциях не должно быть:
 
-1. AST: `rebuild --sub-projects` из `/Users/defendend/workshop`
-2. AST: запускать команды из `/Users/defendend/workshop`
-3. Grep Android: обычный поиск из `telegram-android`
-4. Grep iOS: обычный поиск из `telegram-ios`
-5. Потом сводное сравнение
+- verdict по предыдущим прогонам
+- preferred winner для конкретной фичи
+- практической рекомендации вроде `AST first` / `grep confirm`
 
-## Зафиксированный вывод по первому кейсу
-
-Для кейса `voice/video calls` текущий вывод воркшопа такой:
-
-- как метод структурной разведки выигрывает `ast-only`
-- как метод подтверждения literal/details нужен `grep-only`
-- practical mode:
-  - `AST first`
-  - `grep confirm`
+Такие выводы нужно хранить отдельно от инструкций, по которым запускаются новые прогоны.

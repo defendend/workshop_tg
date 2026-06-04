@@ -69,11 +69,6 @@
 - `target.environment.type = local`
 - `thinking = high`
 
-Практический вывод из кейса:
-
-- `ast-only` является preferred structural method
-- `grep-only` нужен как confirmation layer
-
 ## Правило невмешательства
 
 После создания thread:
@@ -123,10 +118,13 @@
 Нужен сравнительный разбор Android vs iOS:
 - entry points
 - user flow end-to-end
+- architecture / module boundaries
+- central orchestrator / state owner
 - gating / restrictions / feature flags / permissions
 - state and data flow
 - side effects: network / persistence / cache / updates / OS integration
 - UI composition
+- variants / subflows
 - key differences между Android и iOS
 
 Формат ответа:
@@ -135,7 +133,13 @@
 - iOS
 - сравнение
 - `Key Differences`
+- `Architecture Map`
+- `State And Flow`
+- `Side Effects And OS Integration`
+- `Variants / Subflows`
 - таблица артефактов
+- `High-Value Findings`
+- `Uncertainties`
 - список использованных поисковых команд в точном виде
 ```
 
@@ -176,9 +180,9 @@
 - `Index not found` от sandboxed `ast-index` нельзя считать состоянием индекса или AST-anomaly; сначала перепроверь ту же команду вне sandbox
 - не делай отдельные env-проверки до начала discovery вроде `printf '%s\n' "$HOME"`, `env`, `printenv`, `which ast-index`
 - не делай обязательный bootstrap `pwd` / `ast-index db-path` / `ast-index stats` как ритуал старта
-- не делай обязательный ранний `search "video calls"` как smoke-check
-- начинай сразу с AST-discovery по коротким токенам фичи: `call`, `calls`, `voice`, `video`, `VoIP`
-- после первых `search` переходи к `class`, `file`, `symbol`, затем к `usages`, `refs`, `callers`, `call-tree`, `implementations`, `hierarchy`, `module`
+- не делай обязательный ранний smoke-check по полной фразе фичи
+- сначала сам нормализуй имя фичи в более короткие AST-friendly токены, паттерны или structural формы
+- конкретный AST-маршрут выбирай сам: `search`, `agrep`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
 - для Android/iOS артефактов используй также `xml-usages`, `resource-usages`, `swiftui`, `async-funcs`
 - для Android layout resources не подменяй `resource-usages` командой `xml-usages`: `xml-usages` ищет usages классов внутри XML, а layout references проверяются как `resource-usages @layout/<name>`. Например: `resource-usages @layout/call_notification`
 - перед чтением большого файла сначала делай `ast-index outline <file>`
@@ -188,15 +192,18 @@
 - если команда дала неожиданный результат, один раз перепроверь ее из того же `ROOT` и с тем же `DB_PATH`, и только потом фиксируй anomaly
 - если речь о `search` по составной фразе, сначала попробуй хотя бы две естественные нормализованные формы запроса
 - для любой AST-anomaly рядом с проблемной командой обязательно покажи текущие `pwd` и `ast-index db-path`, иначе anomaly не считается доказанной
-- не запускай `ast-index rebuild --sub-projects` только из-за странного `search`/`file`/`symbol`; сначала трактуй это как anomaly и продолжай discovery другими AST-маршрутами
+- не запускай `ast-index rebuild --sub-projects` только из-за странного `search`/`file`/`symbol`/`agrep`; сначала трактуй это как anomaly и продолжай discovery другими AST-маршрутами
 
 Нужен сравнительный разбор Android vs iOS:
 - entry points
 - user flow end-to-end
+- architecture / module boundaries
+- central orchestrator / state owner
 - gating / restrictions / feature flags / permissions
 - state and data flow
 - side effects: network / persistence / cache / updates / OS integration
 - UI composition
+- variants / subflows
 - key differences между Android и iOS
 
 Формат ответа:
@@ -205,7 +212,13 @@
 - iOS
 - сравнение
 - `Key Differences`
+- `Architecture Map`
+- `State And Flow`
+- `Side Effects And OS Integration`
+- `Variants / Subflows`
 - таблица артефактов
+- `High-Value Findings`
+- `Uncertainties`
 - список использованных AST-команд в точном виде
 - только если есть реально существенная anomaly: короткий блок с точной парой `команда -> сырой вывод`
 ```
@@ -224,13 +237,7 @@
 2. Сводить результат по двум осям:
    - качество сравнения Android vs iOS по самой фиче
    - качество метода `grep-only` vs `ast-only`
-3. В итоговом ответе пользователю обязательно дать:
-   - краткий verdict по фиче
-   - краткий verdict по методам
-   - явный вывод, почему `voice/video calls` подходит как первый кейс
-   - явный вывод, что practical sequence после benchmark:
-     - `AST first`
-     - `grep confirm`
+3. Итоговый ответ пользователю должен опираться только на результаты текущих валидных прогонов, без ссылок на заранее зафиксированный “правильный” вывод
 
 ## Как сравнивать методы
 

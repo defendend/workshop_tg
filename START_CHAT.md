@@ -78,11 +78,6 @@ ast-index class --pattern "*Premium*"
   - в первых шагах нет обязательного bootstrap-ритуала
   - нет follow-up steering
 
-10. В practical mode после benchmark:
-
-- сначала `ast-index`
-- потом `grep` только для подтверждения literal/details
-
 12. В `ast-only` режиме можно использовать любые команды `ast-index`.
 
 Текущая задача по умолчанию:
