@@ -48,6 +48,41 @@ Secondary criteria:
 2. speed
 3. command count
 4. noise
+5. reproducibility / stability of the method
+
+## Как оценивать повторяемость
+
+Судья должен отдельно оценить, насколько результат вероятно воспроизводим при новом прогоне на той же фиче.
+
+Для `grep-only` обычно разделяй:
+
+- stable anchors: имена API, permission keys, manifest/plist declarations, очевидные class/file names, literal strings
+- unstable parts: выбор первых поисковых токенов, отсеивание шума, построение ownership map, связывание UI -> protocol -> runtime без structural traversal
+
+Если `grep-only` дал сильный ответ, не утверждай автоматически, что он всегда будет таким же. Напиши, за счет чего он сработал в этом прогоне:
+
+- фича имеет хорошие literal-якоря (`call`, `voip`, `groupCall`, `phone.*`)
+- ключевые owners имеют говорящие имена
+- агент удачно сузил шум и не ушел в generated / third-party код
+
+И отдельно напиши, что может плавать между прогонами:
+
+- какие токены агент попробует первыми
+- заметит ли он отдельный private/group/conference split
+- найдет ли runtime/native boundary, если имена не очевидны
+- не перепутает ли UI component с настоящим owner/state source
+- насколько полно восстановит incoming/system-mediated path
+
+Для `ast-first-confirm` оценивай стабильность иначе:
+
+- stable parts: structural routes через symbols/classes/usages/callers/outline/module boundaries
+- unstable parts: качество индекса, неполные language bindings, CLI anomalies, необходимость корректного root/db-path
+
+Вывод о повторяемости должен быть практическим:
+
+- `grep` может стабильно находить literal evidence, но менее стабилен в восстановлении ownership/boundaries
+- `ast` может быть более стабилен в structural reconstruction, но зависит от качества индекса/tooling
+- если текущий `grep` ответ хорош, это не отменяет риска, что следующий grep-only прогон соберет менее полную architecture map
 
 ## Как трактовать structural gaps у grep
 
@@ -80,6 +115,27 @@ Secondary criteria:
 
 - если `grep` нашел literal evidence, но не собрал ownership / boundaries / runtime split, это реальный architectural gap
 - если `ast` собрал эти слои, это нужно засчитывать как полезное преимущество для implementation planning, а не только как “более красивое объяснение”
+
+## Как объяснять недостатки стандартного поиска
+
+Когда пользователь просит “оценить прогоны”, не ограничивайся сухим winner/verdict. Нужно явно и понятно объяснить, чем стандартный текстовый поиск хуже как основной метод planning-а.
+
+Пиши не абстрактно “grep хуже”, а через конкретные риски:
+
+- `grep` находит строки, но не гарантирует карту ownership: кто принимает решение, кто хранит state, кто только рисует UI
+- `grep` хорошо цепляется за literal names, но может пропустить слой, если имя не содержит очевидного токена фичи
+- `grep` хуже показывает направление зависимости: caller/callee, source of truth, runtime handoff
+- `grep` часто дает много шума из generated / vendored / test code, и качество зависит от ручного сужения
+- `grep` может собрать правильные файлы, но не всегда восстановить порядок flow end-to-end
+- `grep` хуже выявляет variants, где разные subflows живут в разных owners
+
+Для каждого существенного gap добавляй практическое последствие:
+
+- риск менять UI вместо owner/session/runtime слоя
+- риск недооценить объем изменений
+- риск забыть incoming/system/notification path
+- риск сломать group/conference variant, исправляя private call
+- риск поздно обнаружить native/runtime boundary
 
 ## Что считать core architecture
 
@@ -128,6 +184,8 @@ Optional integration appendix:
 
 - `Валидность`
 - `Качество`
+- `Повторяемость`
+- `Недостатки стандартного поиска`
 - `Вердикт`
 
 В `Качество` разделяй:
@@ -139,6 +197,18 @@ Optional integration appendix:
 
 - `Что AST собрал, чего не хватает grep`
 - `Почему эти пробелы grep опасны для дальнейшей реализации`
+
+В `Повторяемость` обязательно укажи:
+
+- что в текущем `grep-only` результате выглядит устойчивым
+- что в нем зависит от удачного выбора токенов/сужения шума
+- почему `ast-first-confirm` должен быть стабильнее или где у него есть tooling-risk
+
+В `Недостатки стандартного поиска` обязательно сделай короткий список 3-6 пунктов:
+
+- наблюдаемый недостаток в текущем прогоне
+- практический риск для разработки
+- помогает ли `ast-first-confirm` закрыть этот риск
 
 В `Вердикт` явно указывай:
 

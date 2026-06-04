@@ -12,6 +12,13 @@
 
 - запускать кейс `voice/video calls`
 
+Важно:
+
+- это не shell-сценарий
+- не пытайся запускать `./scripts/1-run.sh`
+- новый прогон первого сценария создается только через два отдельных Codex `project + local` thread, описанных ниже
+- если в папке `scripts` есть или нет похожие файлы, они не являются source of truth для этого запуска
+
 ## Root
 
 - workspace root: `/Users/defendend/workshop`

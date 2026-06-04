@@ -100,6 +100,12 @@ ast-index rebuild --sub-projects
 - `grep-only` запускать отдельным локальным thread
 - `ast-first-confirm` запускать отдельным локальным thread
 
+Это thread-based сценарий, а не shell script:
+
+- не запускай `./scripts/1-run.sh`
+- не ищи shell-скрипт как primary entry point
+- если пользователь просит "первый сценарий" или "новый прогон первого сценария", сразу создавай два Codex thread по правилам ниже
+
 Оба thread:
 
 - `target.type = project`
