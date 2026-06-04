@@ -3,7 +3,7 @@
 Цель: провести воркшоп-сравнение двух методов на одной и той же задаче сравнения Android и iOS Telegram:
 
 - `grep-only` агент: только текстовый поиск и точечное чтение файлов
-- `ast-only`: только `ast-index`, без `grep`/`rg`
+- `ast-first-confirm`: `ast-index` для discovery/structural analysis, `rg`/`find`/`ls`/`sed` только для позднего точечного confirmation
 
 ## Папки
 
@@ -36,7 +36,7 @@
 - стартовый prompt ссылается на root-instruction files своего режима
 - нет follow-up steering
 
-Для `ast-only` дополнительно:
+Для AST-thread дополнительно:
 
 - до substantive analysis нет никакого preparatory prose: ни про чтение инструкций, ни про локальные skills, ни про отдельную проверку `HOME`, ни пересказа состояния среды вроде “индекс есть” или “bootstrap успешный”
 
@@ -44,14 +44,14 @@
 
 Жестко отключить инструмент у модели нельзя. Поэтому для воркшопа нужен не только промпт, но и аудит:
 
-1. Обязать агента в финале вывести список всех поисковых команд, которые он запускал.
-2. Для `ast-only` явно запретить fallback в `rg`, `grep`, IDE search и любые не-`ast-index` поисковые механики.
-3. Если `ast-only` не нашел ответ AST-командами, он должен так и написать, а не обходить запрет.
+1. Для AST-thread явно запретить fallback в `rg`, `grep`, IDE search и любые не-`ast-index` поисковые механики для discovery/structural reconstruction.
+2. Разрешить `rg --files`, `rg -n`, `find`, `ls`, `sed -n` только как поздний точечный confirm-search после того, как AST уже локализовал core architecture.
+3. Если AST не нашел structural ответ AST-командами, он должен так и написать, а не восстанавливать архитектуру fallback-поиском.
 4. Не давать агентам path hints по самой фиче: никаких стартовых директорий, файлов, классов, модулей или заранее известных entry points. Агенту можно дать только:
    - корень Android-репозитория
    - корень iOS-репозитория
    - имя исследуемой фичи
-5. Требовать раннюю остановку: как только агент нашел entry point и 2-4 ключевых артефакта на платформу, он должен перестать расширять поиск и переходить к сравнению.
+5. Требовать раннюю остановку: как только агент нашел entry point и 2-4 ключевых артефакта на платформу, он должен перестать расширять AST-поиск и переходить к сравнению/confirmation.
 6. Для tool-based запуска не использовать `cd ... && ...` в shell-командах. Нужный корень репозитория должен передаваться через `workdir`, иначе на таких прогонах легко получить ложный `Index not found`.
 7. Если AST-команда реально показывает `Index not found` или есть явный сигнал неправильного root/index, тогда диагностика через `pwd`, `ast-index db-path`, `ast-index stats` и при необходимости `ast-index rebuild --sub-projects` допустима как recovery, а не как стартовый ritual.
 8. Нельзя принимать ответ `Index not found` как итог AST-прогона, пока не была предпринята recovery-попытка через диагностику root/index и при необходимости `ast-index rebuild --sub-projects`.
@@ -62,11 +62,11 @@
 13. AST-команды валидны только если они вызваны напрямую как `HOME=/Users/defendend ast-index <subcommand> ...`.
 14. Любой прогон, где AST вызывался через `bash -c`, `zsh -lc`, `sh -c`, wrapper-скрипт, alias или другую обертку, считать невалидным.
 15. Любой прогон, где AST вызывался без явного `HOME=/Users/defendend`, считать невалидным.
-16. Любой grep-прогон, где разрешенные команды были склеены через `|`, `&&`, `||`, `;`, process substitution или subshell, считать невалидным.
+16. Любой grep-прогон или AST confirm-search, где разрешенные команды были склеены через `|`, `&&`, `||`, `;`, process substitution или subshell, считать невалидным.
 
 ## Правило валидного AST-thread
 
-Для этого воркшопа `ast-only` можно запускать отдельным thread.
+Для этого воркшопа AST-thread можно запускать отдельным thread.
 
 Но AST-thread считается валидным только если:
 
@@ -74,12 +74,13 @@
 - стартовал из `/Users/defendend/workshop`
 - не печатал preparatory prose или пересказ состояния среды до substantive analysis
 - после старта не получил follow-up steering
-- не ушел в `rg`/`grep`/IDE/MCP
+- не использовал `rg`/`grep` как discovery/fallback до того, как AST локализовал core architecture
+- не использовал IDE/MCP
 
 Следствие:
 
 - `grep-only` можно запускать thread
-- `ast-only` тоже можно запускать thread
+- AST-thread тоже можно запускать thread
 - если AST-thread не проходит эту приемку, его надо архивировать и перезапускать как новый thread
 - не подменять кривой AST-thread локальным ручным AST, если цель — именно валидный thread-прогон
 
@@ -97,7 +98,7 @@ ast-index rebuild --sub-projects
 Для валидного воркшоп-прогона:
 
 - `grep-only` запускать отдельным локальным thread
-- `ast-only` запускать отдельным локальным thread
+- `ast-first-confirm` запускать отдельным локальным thread
 
 Оба thread:
 
@@ -109,7 +110,7 @@ ast-index rebuild --sub-projects
 
 - общий task: `prompts/compare-feature-task.md`
 - ограничения grep-only: `prompts/grep-only-agent.md`
-- ограничения ast-only: `prompts/ast-only-agent.md`
+- ограничения AST first / grep confirm: `prompts/ast-only-agent.md`
 
 Формула запуска:
 
@@ -153,17 +154,24 @@ ast-index rebuild --sub-projects
 
 ## Как выносить verdict
 
+Для judge/evaluation stage используй отдельный операторский файл:
+
+- `/Users/defendend/workshop/JUDGE_BENCHMARK.md`
+
+Его нельзя добавлять в стартовые промпты `grep-only` и AST-thread тредов.
+
 Primary:
 
 1. structural coverage
-2. completeness of Android vs iOS comparison
-3. качество объяснения entry points / flow / gating / state / side effects / UI
+2. completeness of core Android vs iOS comparison
+3. качество объяснения entry points / flow / module boundaries / orchestrator / state / runtime side effects / UI
 
 Secondary:
 
-1. скорость
-2. число команд
-3. шум
+1. literal/integration appendix coverage
+2. скорость
+3. число команд
+4. шум
 
 Если оба метода валидны и оба дошли до полноценного сравнения, AST может считаться победителем даже при большем количестве команд и худшем времени, если он дал более сильную structural картину.
 
@@ -177,7 +185,7 @@ Tooling issues у AST:
 
 Для первого кейса:
 
-- `ast-only` сильнее как structural discovery
+- AST-thread сильнее как structural discovery
 - `grep-only` сильнее как literal/details confirmation
 
 Практический режим после воркшопа:
@@ -185,11 +193,13 @@ Tooling issues у AST:
 1. `ast-index` first
 2. `grep` second only for confirmation
 
-## Для честного AST-only режима
+## Для честного AST first / grep confirm режима
 
 Не ограничивай агента whitelist-ом index-команд. Пусть использует любые команды `ast-index`, которые помогают локализовать фичу.
 
-Если какая-то конкретная index-backed команда на данном репозитории падает или дает ложный `Index not found`, это нужно фиксировать в отчете как баг/ограничение CLI, но не превращать в глобальный запрет на весь AST-only режим.
+Confirm-search через `rg --files`, `rg -n`, `find`, `ls`, `sed -n` разрешен только после AST-discovery и только для точечного добора literal/integration evidence. Он не должен подменять поиск entry points, ownership, flow или module boundaries.
+
+Если какая-то конкретная index-backed команда на данном репозитории падает или дает ложный `Index not found`, это нужно фиксировать в отчете как баг/ограничение CLI, но не превращать в глобальный запрет на весь AST first режим.
 
 ## Для честного grep-only режима
 

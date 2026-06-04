@@ -6,7 +6,7 @@
 
 - запустить первый воркшоп-кейс
 - прогнать основной кейс
-- сравнить `grep-only` vs `ast-only` на первом кейсе
+- сравнить `grep-only` vs `ast-first-confirm` на первом кейсе
 
 то default action:
 
@@ -31,7 +31,7 @@
 ## Что считается валидным прогоном
 
 1. `grep-only` запускается отдельным локальным `project thread`.
-2. `ast-only` тоже запускается отдельным локальным `project thread`.
+2. `ast-first-confirm` тоже запускается отдельным локальным `project thread`.
 3. AST-thread валиден только если:
    - создан как `project + local`
    - стартовал из `/Users/defendend/workshop`
@@ -113,19 +113,23 @@
 - если файл большой, сначала локализуй через `rg -n`, потом читай узкие диапазоны через `sed -n`
 - не используй `cd ... && ...`
 - не используй `|`, `&&`, `||`, `;`, process substitution или subshell вокруг разрешенных команд
-- в финале выведи полный список поисковых команд в точном виде
 
 Нужен сравнительный разбор Android vs iOS:
 - entry points
 - user flow end-to-end
 - architecture / module boundaries
 - central orchestrator / state owner
-- gating / restrictions / feature flags / permissions
 - state and data flow
-- side effects: network / persistence / cache / updates / OS integration
+- network / protocol / runtime side effects
 - UI composition
 - variants / subflows
 - key differences между Android и iOS
+
+Optional integration appendix:
+- permissions / manifest / plist / entitlements
+- deep links / push / system-event hooks
+- feature flags / alerts / fallback UI
+- bridge boundaries / native runtime handoff
 
 Формат ответа:
 - краткое summary
@@ -140,7 +144,7 @@
 - таблица артефактов
 - `High-Value Findings`
 - `Uncertainties`
-- список использованных поисковых команд в точном виде
+- `Integration Appendix (Optional)`
 ```
 
 ## Стартовый Prompt: Calls AST Run Clean
@@ -156,7 +160,7 @@
 
 Это чистый воркшоп-прогон. После этого стартового prompt follow-up сообщений не будет. Никакие дополнительные подсказки по scope, путям, классам, entry points не даны и не будут даны.
 
-Режим: `ast-only`.
+Режим: `AST first, grep confirm`.
 Фича: `voice/video calls`.
 
 Критично:
@@ -168,7 +172,11 @@
 - в отчете и `RAW_*` блоках фиксируй logical command как `HOME=/Users/defendend ast-index <subcommand> ...`, но не запускай shell-команду с inline env assignment
 
 Жесткие правила:
-- не используй `rg`, `grep`, `findstr`, MCP, IDE search и любые текстовые поисковые механики
+- не используй `rg`, `grep`, `findstr`, MCP, IDE search и любые текстовые поисковые механики для discovery, ownership analysis или reconstruction of flow
+- после того как AST уже локализовал core architecture, можно использовать только точечный confirm-search: `rg --files`, `rg -n`, `find`, `ls`, `sed -n`
+- confirm-search разрешен только для literal/integration хвостов: manifest / plist / entitlements / permissions / CallKit / PushKit / notifications / service declarations / URL schemes / intent-filters / точечные strings, keys, alerts, fallback UI
+- confirm-search должен быть ограничен repo roots `/Users/defendend/workshop/telegram-android` и `/Users/defendend/workshop/telegram-ios`
+- не превращай confirm-search во второй discovery-проход по фиче
 - не используй `cd ... && ...`
 - если команда шумит или падает, переходи на другой AST route, а не на текстовый fallback
 - если `ast-index` ведет себя странно, фиксируй это как факт прогонa, но не получай никаких внешних подсказок
@@ -182,29 +190,35 @@
 - не делай обязательный bootstrap `pwd` / `ast-index db-path` / `ast-index stats` как ритуал старта
 - не делай обязательный ранний smoke-check по полной фразе фичи
 - сначала сам нормализуй имя фичи в более короткие AST-friendly токены, паттерны или structural формы
-- конкретный AST-маршрут выбирай сам: `search`, `agrep`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
+- конкретный AST-маршрут выбирай сам: `search`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
 - для Android/iOS артефактов используй также `xml-usages`, `resource-usages`, `swiftui`, `async-funcs`
 - для Android layout resources не подменяй `resource-usages` командой `xml-usages`: `xml-usages` ищет usages классов внутри XML, а layout references проверяются как `resource-usages @layout/<name>`. Например: `resource-usages @layout/call_notification`
 - перед чтением большого файла сначала делай `ast-index outline <file>`
-- до финального ответа не пиши никаких промежуточных AST status-updates: ни про чтение инструкций, ни про локальные skills, ни про проверку `HOME`, ни про discovery progress
+- не пиши шумные подготовительные AST status-updates про чтение инструкций, локальные skills, проверку `HOME`, индекс или bootstrap
+- после начала реального discovery можно писать короткие substantive progress-апдейты по находкам и направлению поиска
 - любые `pwd`, `ast-index db-path`, `ast-index stats`, `ast-index rebuild --sub-projects` используй только как recovery/diagnostics, если реально возникла anomaly или `Index not found`
 - любую AST-anomaly фиксируй только как точную пару `команда -> сырой вывод`
 - если команда дала неожиданный результат, один раз перепроверь ее из того же `ROOT` и с тем же `DB_PATH`, и только потом фиксируй anomaly
 - если речь о `search` по составной фразе, сначала попробуй хотя бы две естественные нормализованные формы запроса
 - для любой AST-anomaly рядом с проблемной командой обязательно покажи текущие `pwd` и `ast-index db-path`, иначе anomaly не считается доказанной
-- не запускай `ast-index rebuild --sub-projects` только из-за странного `search`/`file`/`symbol`/`agrep`; сначала трактуй это как anomaly и продолжай discovery другими AST-маршрутами
+- не запускай `ast-index rebuild --sub-projects` только из-за странного результата одной AST-команды; сначала трактуй это как anomaly и продолжай discovery другими AST-маршрутами
 
 Нужен сравнительный разбор Android vs iOS:
 - entry points
 - user flow end-to-end
 - architecture / module boundaries
 - central orchestrator / state owner
-- gating / restrictions / feature flags / permissions
 - state and data flow
-- side effects: network / persistence / cache / updates / OS integration
+- network / protocol / runtime side effects
 - UI composition
 - variants / subflows
 - key differences между Android и iOS
+
+Optional integration appendix:
+- permissions / manifest / plist / entitlements
+- deep links / push / system-event hooks
+- feature flags / alerts / fallback UI
+- bridge boundaries / native runtime handoff
 
 Формат ответа:
 - краткое summary
@@ -219,7 +233,7 @@
 - таблица артефактов
 - `High-Value Findings`
 - `Uncertainties`
-- список использованных AST-команд в точном виде
+- `Integration Appendix (Optional)`
 - только если есть реально существенная anomaly: короткий блок с точной парой `команда -> сырой вывод`
 ```
 
@@ -236,28 +250,33 @@
    - ast-thread стартовал из `/Users/defendend/workshop`
 2. Сводить результат по двум осям:
    - качество сравнения Android vs iOS по самой фиче
-   - качество метода `grep-only` vs `ast-only`
+   - качество метода `grep-only` vs `ast-first-confirm`
 3. Итоговый ответ пользователю должен опираться только на результаты текущих валидных прогонов, без ссылок на заранее зафиксированный “правильный” вывод
+4. Для judge/evaluation stage используй отдельный операторский файл:
+   - `/Users/defendend/workshop/JUDGE_BENCHMARK.md`
+5. Этот judge-файл нельзя включать в стартовые промпты тредов и нельзя пересказывать агентам до завершения прогонов
 
 ## Как сравнивать методы
 
 Primary criteria:
 
 1. Насколько глубоко метод раскрыл архитектурную структуру фичи
-2. Насколько полно метод прошил Android vs iOS comparison
+2. Насколько полно метод прошил core Android vs iOS comparison
 3. Насколько хорошо видны:
    - entry points
    - user flow
-   - gating
+   - module boundaries
+   - orchestrator / state owner
    - state/data flow
-   - side effects
-   - UI composition
+   - runtime / protocol side effects
+   - variants / subflows
 
 Secondary criteria:
 
-1. Время до первого сигнала
-2. Общее число команд
-3. Объем шума
+1. Literal/integration appendix coverage
+2. Время до первого сигнала
+3. Общее число команд
+4. Объем шума
 
 Если оба прогона валидны и оба дошли до полноценного сравнения, structural coverage важнее, чем скорость или количество команд.
 

@@ -1,10 +1,10 @@
-# AST-Only Agent
+# AST-First Agent
 
-Ты работаешь в режиме `ast-only` для воркшопа.
+Ты работаешь в практическом режиме `AST first, grep confirm`.
 
 ## Цель
 
-Сравнить одну и ту же фичу в Android и iOS Telegram, используя именно `ast-index` как единственный механизм поиска по коду.
+Сравнить одну и ту же фичу в Android и iOS Telegram, используя `ast-index` как основной механизм discovery и structural analysis, а обычный файловый поиск — только как поздний точечный слой подтверждения.
 
 ## Что тебе известно
 
@@ -15,23 +15,53 @@
 
 Кроме root и имени фичи, тебе ничего заранее не известно.
 
+Разрешенные корни для реальной feature-работы:
+
+- `/Users/defendend/workshop/telegram-android`
+- `/Users/defendend/workshop/telegram-ios`
+
 ## Базовое правило
 
 Для этого режима:
 
-- `ast-index` — единственный инструмент поиска по коду
-- `rg`, `grep`, `findstr`, IDE search, MCP и любые другие текстовые поисковые механики запрещены
-- если AST-маршрутом не удалось доказать часть ответа, это надо явно писать в ограничениях, а не делать fallback на текстовый поиск
+- `ast-index` — основной инструмент поиска по коду и локализации архитектуры
+- обычный текстовый поиск разрешен только как финальный confirm-слой, когда core architecture уже локализована AST-маршрутом
+- `grep` не должен заменять discovery с нуля, ownership analysis или reconstruction of flow
+- если AST уже доказал часть ответа, не дублируй ее grep-поиском без причины
+- MCP, IDE search и любые другие поисковые механики, кроме AST и разрешенного shell-search, запрещены
+- root-level воркшопные `.md` из `/Users/defendend/workshop` запрещены для чтения и использования как evidence, кроме явно разрешенных instruction files из стартового prompt
+- любые результаты поиска вне `/Users/defendend/workshop/telegram-android` и `/Users/defendend/workshop/telegram-ios` считаются нерелевантными для feature-analysis и должны игнорироваться
+
+Разрешенный confirm-search:
+
+- `rg --files`
+- `rg -n`
+- `find`
+- `ls`
+- `sed -n`
+
+Типичные случаи для confirm-search:
+
+- `manifest` / `plist` / `entitlements`
+- permission keys
+- CallKit / PushKit / notification / service declarations
+- deep link / URL scheme / intent-filter / background mode подтверждения
+- точечные literal-строки, которые AST локализует хуже, чем архитектурный слой
+
+Confirm-search тоже должен быть ограничен только двумя repo roots:
+
+- `/Users/defendend/workshop/telegram-android`
+- `/Users/defendend/workshop/telegram-ios`
 
 ## Жесткое правило вызова AST
 
-Все AST-команды в этом воркшопе должны вызываться только напрямую как actual shell command:
+Все AST-команды в этом режиме должны вызываться только напрямую как actual shell command:
 
 ```bash
 ast-index <subcommand> ...
 ```
 
-`HOME=/Users/defendend` задается окружением Codex Desktop (`shell_environment_policy`). В отчете, `RAW_*` блоках и списке команд показывай logical command как:
+`HOME=/Users/defendend` задается окружением Codex Desktop (`shell_environment_policy`). В anomaly/evidence-блоках показывай logical command как:
 
 ```bash
 HOME=/Users/defendend ast-index <subcommand> ...
@@ -46,24 +76,27 @@ HOME=/Users/defendend ast-index <subcommand> ...
 - любые alias/function/launcher-обертки, меняющие способ запуска
 - inline `HOME=/Users/defendend ast-index ...` как actual shell command в Codex Desktop
 
-Если в Codex Desktop actual shell command не начинается с `ast-index <subcommand> ...`, прогон считается невалидным. Logical command в отчете при этом должен оставаться `HOME=/Users/defendend ast-index ...`.
+Если actual shell command не начинается с `ast-index <subcommand> ...`, AST-вызов считается невалидным. Logical command в отчете при этом должен оставаться `HOME=/Users/defendend ast-index ...`.
 
 ## Preferred AST Workflow
 
-По умолчанию весь AST-анализ делается из общего корня:
+По умолчанию feature-discovery делается не из общего корня, а отдельно из repo roots:
 
 ```bash
-cd /Users/defendend/workshop
+cd /Users/defendend/workshop/telegram-android
+ast-index ...
+
+cd /Users/defendend/workshop/telegram-ios
 ast-index ...
 ```
 
-Это preferred mode.
+Если общий индекс построен из `/Users/defendend/workshop`, это внутренний tooling detail, а не разрешение искать по всему workspace.
 
 `--walk-up`:
 
-- разрешен
+- разрешен как технический способ использовать индекс
 - не обязателен
-- не считается гарантией использования общего root-индекса
+- не считается оправданием для поиска по всему `/Users/defendend/workshop`
 
 ## Silent Startup
 
@@ -71,27 +104,27 @@ ast-index ...
 
 - прочитай их молча
 - не пиши отдельные сообщения про чтение инструкций, `source of truth`, дочитывание хвостов или `Explored N files`
-- не объявляй подключение локальных skills, MCP, plugin-инструкций или других вспомогательных правил, если режим уже жестко задан воркшопом
+- не объявляй подключение локальных skills, MCP, plugin-инструкций или других вспомогательных правил
+- после этого не читай никакие другие root-level воркшопные `.md`, если они не были явно разрешены стартовым prompt
 
-До начала реального AST-discovery:
+До начала реального discovery:
 
-- не пиши промежуточные апдейты вообще
+- не пиши подготовительные meta-апдейты
 - не пересказывай состояние среды
-- не объясняй, что сейчас проверяешь `HOME`, индекс или среду
+- не объясняй, что сейчас проверяешь `HOME`, индекс или bootstrap
 
-В обычном валидном прогоне:
+После того как реальный discovery уже начался:
 
-- не печатай отдельные meta-блоки `INDEX_ROOT`, `PROJECT_ROOT_ANDROID`, `PROJECT_ROOT_IOS`, `DB_PATH`, `STATS_RESULT`, `REBUILD_PERFORMED`
-- не печатай отдельные блоки `RAW_BOOTSTRAP` и `RAW_SEARCH_SMOKE`
-- не давай пошаговые AST status-updates после bootstrap
-- либо молча работай до финального ответа, либо показывай только доказательство реальной anomaly
+- можно писать короткие substantive progress-апдейты
+- не превращай их в поток сообщений на каждую мелкую команду
+- не пиши шумные meta-апдейты про инструкции, `HOME`, индекс, bootstrap или внутреннюю механику инструментов
 
 Отдельные env-команды до начала discovery запрещены:
 
 - не запускай `printf '%s\n' "$HOME"`
-- не запускай `env`, `printenv`, `which ast-index` и похожие подготовительные проверки
+- не запускай `env`, `printenv`, `which ast-index`
 - не делай обязательный ритуал `pwd` / `ast-index db-path` / `ast-index stats`
-- не делай обязательный ранний `search`-smoke-check по фразе фичи
+- не делай обязательный ранний `search`-smoke-check по полной фразе фичи
 
 ## Discovery Start
 
@@ -101,8 +134,7 @@ ast-index ...
 
 - не делай обязательный отдельный smoke-check по полной человеческой фразе
 - сначала сам нормализуй имя фичи в более короткие AST-friendly токены, паттерны или structural формы
-- маршрут выбирай сам: можно стартовать через `search`, `agrep`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
-- если после первых находок становится понятна форма вызова или сигнатуры, можно сразу переходить к structural pattern search через `agrep`
+- маршрут выбирай сам: можно стартовать через `search`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
 
 `pwd`, `ast-index db-path`, `ast-index stats`, `ast-index rebuild --sub-projects` допустимы только как recovery/diagnostics, если:
 
@@ -126,7 +158,6 @@ ast-index rebuild --sub-projects
 Например:
 
 - `search`
-- `agrep`
 - `file`
 - `symbol`
 - `class`
@@ -154,9 +185,8 @@ ast-index rebuild --sub-projects
 Правило простое:
 
 - любые прямые команды `ast-index` разрешены
-- маршрут discovery агент выбирает сам
+- AST-маршрут discovery агент выбирает сам
 - не фиксируй обязательную последовательность subcommand-ов; переключайся между маршрутами по силе сигнала
-- запрещены только не-`ast-index` поисковые механики
 
 Android XML/resource rule:
 
@@ -176,16 +206,20 @@ ast-index outline <file>
 
 ## Рабочий порядок
 
-1. Убедись, что индекс существует в `/Users/defendend/workshop`
-2. Если индекса нет, выполни `ast-index rebuild --sub-projects` из `/Users/defendend/workshop`
-3. Все AST-команды по умолчанию выполняй из `/Users/defendend/workshop`
-4. Если решишь использовать AST из подпроекта и видишь anomaly, отдельно проверь `pwd`, `db-path`, `stats` как диагностику
-5. Сначала сделай discovery по имени фичи и его словоформам
-6. Нормализуй имя фичи в более короткие AST-friendly якоря, токены или паттерны без заранее заданного словаря
-7. Выбери любой подходящий AST-маршрут для первого захода: `search`, `agrep`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
-8. Не начинай с многословного человеческого запроса или паттерна целиком, если его еще не сузил в более рабочую форму
-9. Если один маршрут дал слабый сигнал, шум или пустой результат, не зацикливайся: переходи на другой AST-маршрут
-10. Не запускай `ast-index rebuild --sub-projects` только из-за странного `search`/`file`/`symbol`/`agrep`; сначала трактуй это как возможную anomaly и продолжай discovery другими AST-маршрутами
+1. Убедись, что индекс существует.
+2. Если индекса нет, выполни `ast-index rebuild --sub-projects` из `/Users/defendend/workshop`.
+3. Но сами AST-команды для discovery и чтения файлов по умолчанию выполняй из repo roots:
+   - `/Users/defendend/workshop/telegram-android`
+   - `/Users/defendend/workshop/telegram-ios`
+4. Несмотря на общий root индекса, считай разрешенной областью анализа только пути внутри:
+   - `/Users/defendend/workshop/telegram-android`
+   - `/Users/defendend/workshop/telegram-ios`
+5. Если AST-команда показывает результат вне этих двух repo roots, не открывай такие файлы и не используй их как доказательство.
+6. Сначала сделай discovery по имени фичи и его словоформам.
+7. Нормализуй имя фичи в более короткие AST-friendly якоря, токены или паттерны без заранее заданного словаря.
+8. Выбери любой подходящий AST-маршрут для первого захода: `search`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand.
+9. Не начинай с многословного человеческого запроса целиком, если его еще не сузил в более рабочую форму.
+10. Если один маршрут дал слабый сигнал, шум или пустой результат, не зацикливайся: переходи на другой AST-маршрут.
 11. Затем углубляйся через:
    - `usages`
    - `refs`
@@ -199,10 +233,15 @@ ast-index outline <file>
    - `resource-usages`
    - `swiftui`
    - `async-funcs`
-13. Для Android layout resources не подменяй `resource-usages` командой `xml-usages`: `xml-usages` ищет usages классов внутри XML, а layout references проверяются как `resource-usages @layout/<name>`. Например: `resource-usages @layout/call_notification`.
-14. Читай исходники только точечно, когда AST уже привел тебя к конкретному файлу или символу
-15. Расширяй поиск только пока это реально добавляет доказательства для сравнения Android vs iOS
-16. Останавливайся, когда у тебя уже достаточно подтвержденных артефактов и связей, чтобы уверенно покрыть требуемые разделы ответа
+13. Читай исходники только точечно, когда AST уже привел тебя к конкретному файлу или символу.
+14. Расширяй AST-поиск только пока это реально добавляет structural evidence.
+15. Как только у тебя уже собраны entry points, 2-4 ключевых артефакта на платформу, central owners и основная execution path, переходи к сравнению.
+16. Только после этого, если нужно, используй разрешенный confirm-search для узких literal/integration хвостов.
+17. Confirm-search должен быть точечным:
+   - сначала `rg -n`
+   - затем только узкий `sed -n` диапазон
+   - не перечитывай большие файлы целиком без причины
+18. Не превращай confirm-search во второй discovery-проход по всей фиче.
 
 ## Что нужно сделать
 
@@ -226,5 +265,4 @@ ast-index outline <file>
 - сравнение
 - `Key Differences`
 - таблица артефактов
-- список использованных AST-команд в точном виде
 - если есть реально существенная anomaly, кратко покажи ее как доказанную пару `команда -> сырой вывод`

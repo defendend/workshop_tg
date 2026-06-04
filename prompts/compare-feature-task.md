@@ -5,6 +5,12 @@
 
 Исследуемая фича: `<FEATURE_NAME>`
 
+Подстановка `<FEATURE_NAME>`:
+
+- Оператор воркшопа заменяет плейсхолдер `<FEATURE_NAME>` на имя конкретной фичи (например, `voice/video calls`, `chat folders`) непосредственно перед отправкой промта агенту.
+- Подстановка делается только здесь, в `compare-feature-task.md`. Режимные промты `prompts/ast-only-agent.md` и `prompts/grep-only-agent.md` ничего не знают про конкретную фичу и не должны быть отредактированы под нее.
+- Если ты видишь литеральную строку `<FEATURE_NAME>` без подстановки, считай это ошибкой запуска: не приступай к discovery, сообщи об ошибке и остановись.
+
 Важное правило:
 
 - Тебе известны только корни двух репозиториев и имя фичи.
@@ -17,7 +23,7 @@
 2. Показать, как фича активируется из продукта:
    - экран
    - действие пользователя
-   - deep link / push / системное событие / настройка, если есть
+   - публичный app-level trigger, если он есть
 3. Найти основные артефакты по слоям:
    - UI / presentation
    - navigation / routing
@@ -43,15 +49,14 @@
 7. Показать side effects:
    - network / protocol calls
    - persistence / cache / preferences
-   - background work / notifications
+   - background/runtime work
    - audio/video/media runtime
-   - OS integration
+   - OS integration boundary
 8. Показать gating / restrictions / error / fallback paths:
-   - permissions
-   - privacy / feature flags / availability checks
+   - privacy / availability / feature gating checks
    - active-session conflicts
    - unsupported-version / offline / disabled-integration cases
-   - fallback UI / alerts / recovery behavior
+   - recovery behavior, если он явно доказан
 9. Если у фичи есть явные subflows или variants, выделить их отдельно.
    Примеры:
    - 1:1 vs group
@@ -65,8 +70,19 @@
    - роль в системе
 11. Отдельно перечислить 3-5 самых полезных находок, которые реально помогли локализовать архитектуру фичи.
 12. Если есть места, где доказательств не хватает, явно пометить их как uncertainty, а не заполнять догадкой.
+13. Отдельно, как optional appendix, можно добавить literal/integration evidence, если твой метод реально умеет это доказать:
+   - permissions / manifest / plist / entitlements
+   - deep links / push / system-event hooks
+   - feature flags / strings / alerts / fallback UI
+   - analytics / keys / intent-filters / notification declarations
+   Этот слой не должен подменять core architecture comparison.
+14. Для bridge-границ (JNI, Obj-C wrappers, libtgvoip/WebRTC wrappers, `.proto`, generated bindings) достаточно:
+   - назвать boundary artifact
+   - показать направление вызова или ownership
+   - объяснить, какой слой уходит в native/runtime boundary
+   Полный traversal по ту сторону boundary не обязателен.
 
-Формат ответа:
+Формат ответа (единый источник правды; режимные промты `ast-only-agent.md` и `grep-only-agent.md` не переопределяют этот формат, а лишь могут добавить mode-specific блок anomaly в самом конце):
 
 - краткое summary
 - Android
@@ -79,6 +95,7 @@
 - таблица артефактов
 - `High-Value Findings`
 - `Uncertainties`
-- список использованных поисковых команд в точном виде
+- `Integration Appendix (Optional)`
+- (опционально, mode-specific) `RAW_AST_ANOMALIES` или `RAW_SEARCH_ANOMALIES` — только если anomaly доказана по правилам соответствующего режимного промта
 
 Если доказательств недостаточно, так и напиши. Не выдумывай связи, которые не подтверждены найденными файлами или символами.
