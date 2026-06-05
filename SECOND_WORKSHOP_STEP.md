@@ -200,7 +200,7 @@ AST-first project discovery + grep confirmation + project architecture memory
 - понять generated/native/runtime boundaries
 - понять, где искать owners для типовых задач
 - понять, какие зоны не стоит путать с source of truth
-- знать, что подтвердить через AST и что добрать через grep-confirm
+- понимать architectural evidence и ownership boundaries для типовых задач
 
 Минимальные требования к каждой карте:
 - минимум 12-20 key artifacts, если AST discovery нашел достаточно evidence
@@ -210,6 +210,14 @@ AST-first project discovery + grep confirmation + project architecture memory
 - отдельный `Do Not Start Here / Common Traps`
 - absolute paths для key artifacts; если точный range был прочитан, добавляй line anchor
 - честные uncertainties: какие зоны future agent должен re-confirm
+
+Строго не добавляй в сами карты методологический или tooling-мусор:
+- никаких секций вроде `AST Re-Confirmation Guide`, `Recommended Agent Workflow`, `Evidence Checklist`, `How to confirm with AST`, `confirm/read strategy`
+- никаких списков команд `ast-index`, `rg`, `grep`, `sed`, `find`, `ls` и инструкций как ими пользоваться
+- никаких отчетов о том, какими routes/tools была собрана карта
+- не объясняй workflow воркшопа внутри карт
+- карта должна быть именно project architecture map: ownership, layers, boundaries, entry points, source-of-truth notes, traps, uncertainties
+- если нужно упомянуть проверку, формулируй архитектурно: что является source of truth и что не является source of truth, без командных рецептов
 
 Если не получается собрать полноценную карту из-за tooling limits, так и напиши в `Open Questions / Uncertainties`, но не заменяй карту компактным обзором.
 
@@ -277,7 +285,7 @@ Generated code, JNI/Obj-C/C++/Swift wrappers, media/runtime engines, protobuf/TL
 - Typical entry points
 - Important downstream dependencies
 - Change risk
-- How to confirm with AST
+- Ownership/source-of-truth notes
 
 ## Key Artifacts
 Таблица:
@@ -285,10 +293,9 @@ Generated code, JNI/Obj-C/C++/Swift wrappers, media/runtime engines, protobuf/TL
 - role
 - layer
 - why future agents should care
-- confirm/read strategy
 
 ## Start Here By Task Type
-Практические инструкции:
+Практические архитектурные маршруты:
 - UI change
 - navigation/routing change
 - network/protocol change
@@ -300,29 +307,14 @@ Generated code, JNI/Obj-C/C++/Swift wrappers, media/runtime engines, protobuf/TL
 - build/generated/schema change
 Для каждого пункта:
 - Start here
-- Confirm with AST
-- Confirm with grep only after AST
 - Do not confuse with
 - Risk if you edit the wrong layer
 
 ## Do Not Start Here / Common Traps
 Типичные ложные owners и зоны шума.
 
-## Recommended Agent Workflow
-Пошаговый workflow для будущих AI-агентов:
-1. Read this map
-2. Identify affected layer
-3. Confirm current owners via AST
-4. Trace callers/usages
-5. Read narrow ranges only after outline
-6. Use grep only for literal confirmation
-7. Produce implementation plan with uncertainties
-
 ## Open Questions / Uncertainties
-Честные границы расследования и зоны, которые future agent должен re-confirm.
-
-## Appendix: Evidence Checklist
-Checklist evidence, который future agents должны подтвердить перед изменениями.
+Честные границы расследования и зоны, где ownership/source of truth требует дополнительного уточнения.
 ```
 
 ## Что Делать После Завершения
@@ -354,11 +346,15 @@ Checklist evidence, который future agents должны подтверди
    - key artifacts
    - start-here by task type
    - common traps
-   - recommended agent workflow
    - uncertainties
-   - evidence checklist
-3. Не превращать результат во второй benchmark.
-4. Итоговый ответ пользователю должен коротко сообщить:
+3. Проверить, что внутри карт нет methodology/tooling sections:
+   - `AST Re-Confirmation Guide`
+   - `Recommended Agent Workflow`
+   - `Evidence Checklist`
+   - `How to confirm with AST`
+   - списков команд `ast-index`, `rg`, `grep`, `sed`, `find`, `ls`
+4. Не превращать результат во второй benchmark.
+5. Итоговый ответ пользователю должен коротко сообщить:
    - thread id
    - статус валидности
    - что две candidate project-level Markdown-карты собраны и записаны на диск
