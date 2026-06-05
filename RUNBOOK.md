@@ -95,11 +95,19 @@ ast-index rebuild --sub-projects
 
 ## Как запускать
 
+Если пользователь просит конкретный воркшоп-этап/шаг/сценарий, это deterministic dispatch, а не repo exploration:
+
+- не ищи shell-скрипты
+- не смотри `scripts/` как возможный entry point
+- не запускай `./scripts/1-run.sh`, `./scripts/2-analyze.sh` или `./scripts/3-cleanup.sh`
+- сразу открывай соответствующий root-level operator file ниже
+- дальше создавай Codex `project + local` thread/thread-ы по инструкции из operator file
+
 Для конкретных этапов воркшопа используй отдельные операторские файлы:
 
 - первый этап / benchmark `grep-only` vs `AST first, grep confirm`: `/Users/defendend/workshop/FIRST_WORKSHOP_STEP.md`
 - второй этап / reusable project architecture maps для будущих AI-агентов: `/Users/defendend/workshop/SECOND_WORKSHOP_STEP.md`
-- третий этап / map-guided implementation planning: `/Users/defendend/workshop/THIRD_WORKSHOP_STEP.md`
+- третий этап / map-guided vs grep-first implementation planning: `/Users/defendend/workshop/THIRD_WORKSHOP_STEP.md`
 
 Для валидного воркшоп-прогона:
 

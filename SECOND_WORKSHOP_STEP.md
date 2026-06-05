@@ -14,12 +14,12 @@
 то default action:
 
 - запускать один AST-first thread
-- цель thread: собрать две полноценные project-level Markdown-карты:
-  - `TELEGRAM_ANDROID_ARCHITECTURE.md`
-  - `TELEGRAM_IOS_ARCHITECTURE.md`
+- цель thread: собрать две новые candidate project-level Markdown-карты:
+  - `TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
+  - `TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
 - агент обязан создать эти два файла именно в корне workspace: `/Users/defendend/workshop`
 - карты должны описывать архитектуру проектов в целом, а не архитектуру одной фичи
-- результат должен быть reusable memory для будущих AI-агентов
+- результат должен быть candidate reusable memory, которую можно сравнить с seed/reference maps
 
 Важно:
 
@@ -29,6 +29,7 @@
 - не запускай `grep-only` thread
 - не сравнивай методы
 - не собирай карту только по `voice/video calls`
+- не читай seed/reference maps `TELEGRAM_ANDROID_ARCHITECTURE.md` и `TELEGRAM_IOS_ARCHITECTURE.md`
 - не используй выводы первого этапа как source of truth для discovery
 - новый прогон второго этапа создается только через отдельный Codex `project + local` thread, описанный ниже
 
@@ -54,9 +55,9 @@
 Второй этап делает практический следующий шаг:
 
 1. Запустить AST-first discovery на уровне проектов.
-2. Составить отдельную reusable architecture map для Android.
-3. Составить отдельную reusable architecture map для iOS.
-4. Дать будущим AI-агентам project memory: где входы, слои, owners, boundaries, generated/native/runtime зоны, platform integration и типичные ловушки.
+2. Составить отдельную candidate architecture map для Android.
+3. Составить отдельную candidate architecture map для iOS.
+4. Сравнить candidate maps с закоммиченными seed/reference maps уже на operator/judge уровне, не передавая seed maps агенту второго этапа.
 
 Главная идея второго этапа:
 
@@ -87,8 +88,8 @@ AST-first project discovery + grep confirmation + project architecture memory
    - обязательные root-instruction files
    - требуемую структуру итоговых Markdown-документов
 8. Thread должен создать или обновить два Markdown-файла именно в корне workspace `/Users/defendend/workshop`:
-   - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE.md`
-   - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE.md`
+   - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
+   - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
 9. Финальный результат считается недостаточным, если он:
    - описывает только одну фичу
    - смешивает Android и iOS в одну карту без отдельных документов
@@ -152,15 +153,18 @@ AST-first project discovery + grep confirmation + project architecture memory
 Режим: `AST first, grep confirm`.
 
 Цель: подготовить два полноценных Markdown-документа в финальном ответе:
-- `TELEGRAM_ANDROID_ARCHITECTURE.md`
-- `TELEGRAM_IOS_ARCHITECTURE.md`
+- `TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
+- `TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
 
 Создай или обнови два Markdown-файла именно в корне workspace `/Users/defendend/workshop`:
-- `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE.md`
-- `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE.md`
+- `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
+- `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
 
 Не ограничивайся выводом markdown в финальном ответе: файлы должны реально появиться на диске именно по этим двум абсолютным путям.
 Не клади карты внутрь `telegram-android`, `telegram-ios`, `prompts`, `scripts` или любой другой подпапки.
+Не читай и не используй seed/reference maps:
+- `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE.md`
+- `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE.md`
 
 Критично:
 - стартуй из root `/Users/defendend/workshop`
@@ -187,7 +191,7 @@ AST-first project discovery + grep confirmation + project architecture memory
 
 Нужно собрать project architecture maps, а не фичевый обзор и не список директорий.
 
-Качество важнее краткости. Это reference artifact для будущих AI-агентов, поэтому каждая карта должна помогать следующему агенту:
+Качество важнее краткости. Это candidate reference artifact для будущих AI-агентов, поэтому каждая карта должна помогать следующему агенту:
 - понять основные слои проекта
 - понять app entry / lifecycle / navigation
 - понять UI architecture
@@ -330,8 +334,8 @@ Checklist evidence, который future agents должны подтверди
    - thread стартовал из `/Users/defendend/workshop`
    - thread создан как `project + local`
    - на диске существуют два полноценных Markdown-документа:
-     - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE.md`
-     - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE.md`
+     - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
+     - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
    - оба файла лежат в корне `/Users/defendend/workshop`, а не в подпапках проектов
 2. Проверить, что оба документа содержат:
    - purpose/scope
@@ -357,7 +361,7 @@ Checklist evidence, который future agents должны подтверди
 4. Итоговый ответ пользователю должен коротко сообщить:
    - thread id
    - статус валидности
-   - что две project-level Markdown-карты собраны и записаны на диск
+   - что две candidate project-level Markdown-карты собраны и записаны на диск
    - абсолютные пути файлов
 
 ## Как Объяснять Второй Этап На Воркшопе
@@ -366,18 +370,18 @@ Checklist evidence, который future agents должны подтверди
 
 1. Первый этап показал проблему на фиче: grep-first агент может найти файлы, но не гарантирует architecture ownership.
 2. Второй этап поднимает workflow на уровень проекта.
-3. AST-first агент строит reusable project maps отдельно для Android и iOS.
-4. Future agents больше не начинают с пустого grep-first блуждания по огромному repo.
-5. Они читают карту проекта, определяют затронутый слой, подтверждают актуальность через AST и добирают literal details через grep.
+3. AST-first агент строит candidate project maps отдельно для Android и iOS.
+4. Operator сравнивает candidate maps с закоммиченными seed/reference maps.
+5. Лучшие карты можно использовать как стартовую память в третьем этапе.
 
-## Как Использовать Карты В Будущих Agent Prompts
+## Как Использовать Candidate Maps В Будущих Agent Prompts
 
 Пример follow-up prompt для будущих задач:
 
 ```text
 Перед работой прочитай relevant project map:
-- `TELEGRAM_ANDROID_ARCHITECTURE.md` для Android
-- `TELEGRAM_IOS_ARCHITECTURE.md` для iOS
+- `TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md` для Android
+- `TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md` для iOS
 
 Используй карту как стартовую архитектурную память, не как абсолютную истину.
 Определи затронутый слой: UI, navigation, state/data, network/protocol, persistence/cache, platform integration, native/runtime, build/generated.
@@ -391,6 +395,7 @@ Checklist evidence, который future agents должны подтверди
 - не запускать grep-only thread
 - не запускать benchmark judge
 - не использовать `JUDGE_BENCHMARK.md` как source для thread prompt
+- не читать seed/reference maps `TELEGRAM_ANDROID_ARCHITECTURE.md` и `TELEGRAM_IOS_ARCHITECTURE.md` внутри второго этапа
 - не собирать только карту `voice/video calls`
 - не смешивать Android и iOS в один документ
 - не подсказывать агенту feature-specific owners из первого этапа
