@@ -123,7 +123,7 @@ ast-index ...
 
 - не запускай `printf '%s\n' "$HOME"`
 - не запускай `env`, `printenv`, `which ast-index`
-- не делай обязательный ритуал `pwd` / `ast-index db-path` / `ast-index stats`
+- не делай обязательный ритуал `pwd` / `ast-index stats`
 - не делай обязательный ранний `search`-smoke-check по полной фразе фичи
 
 ## Discovery Start
@@ -136,7 +136,7 @@ ast-index ...
 - сначала сам нормализуй имя фичи в более короткие AST-friendly токены, паттерны или structural формы
 - маршрут выбирай сам: можно стартовать через `search`, `class`, `file`, `symbol`, `module` или другой прямой `ast-index` subcommand
 
-`pwd`, `ast-index db-path`, `ast-index stats`, `ast-index rebuild --sub-projects` допустимы только как recovery/diagnostics, если:
+`pwd`, `ast-index stats`, `ast-index rebuild --sub-projects` допустимы только как recovery/diagnostics, если:
 
 - AST-команда реально вернула `Index not found`
 - есть подозрение, что выбран не тот root/index
@@ -174,9 +174,6 @@ ast-index rebuild --sub-projects
 - `changed`
 - `map`
 - `conventions`
-- `xml-usages`
-- `resource-usages`
-- `swiftui`
 - `async-funcs`
 - `todo`
 - `deprecated`
@@ -188,11 +185,48 @@ ast-index rebuild --sub-projects
 - AST-маршрут discovery агент выбирает сам
 - не фиксируй обязательную последовательность subcommand-ов; переключайся между маршрутами по силе сигнала
 
-Android XML/resource rule:
+Практика аргументов и pattern-ов:
 
-- `xml-usages <name>` ищет usages классов внутри XML
-- layout/resource references проверяй через `resource-usages @layout/<name>`
-- пример: для layout `call_notification` используй `resource-usages @layout/call_notification`, а не `xml-usages call_notification`
+- если аргумент содержит shell-sensitive символы (`*`, `?`, `[`, `]`, пробелы), передавай его в кавычках
+- для glob options используй форму вроде `ast-index class --pattern '*Call*'` или `ast-index symbol --pattern '*Call*' --type function`
+- ошибка вида `zsh: no matches found: *Call*` означает, что команда не дошла до `ast-index`: это shell globbing, а не AST-результат
+- после такой ошибки повтори тот же AST-маршрут с quoted pattern и не считай первый запуск evidence
+
+Краткая справка по командам:
+
+- `search <query>`: поиск по files + symbols
+- `file <pattern>`: поиск файлов по имени
+- `symbol <name>` / `symbol --pattern '<glob>'`: поиск символов
+- `class <name>` / `class --pattern '<glob>'`: поиск classes/interfaces
+- `outline <file>`: символы внутри файла
+- `imports <file>`: imports/includes файла
+- `refs <symbol>`: definitions/imports/usages символа
+- `usages <symbol>`: usages символа
+- `callers <functionName>`: callers функции
+- `call-tree <functionName>`: дерево callers вверх
+- `implementations <Parent>`: subclasses/implementors
+- `hierarchy <Name>`: class hierarchy
+- `module <pattern>`: поиск modules
+- `deps <module>`: dependencies module
+- `dependents <module>`: reverse dependencies module
+- `api <module_path>`: public API module
+- `map`: compact project map
+- `conventions`: architecture/framework/naming conventions
+- `changed`: changed symbols относительно base
+- `extensions <ReceiverType>`: extension functions
+- `async-funcs [query]`: Swift async functions
+- `todo [pattern]`: TODO/FIXME/HACK comments
+- `deprecated [query]`: deprecated items
+- `stats`: index statistics
+
+Практика использования `callers` / `usages`:
+
+- сначала найди, как символ реально видит индекс: `ast-index symbol <name>`, `ast-index symbol <name> --type function` или `ast-index outline <file>`
+- для методов не полагайся вслепую на human-style форму `ClassName.methodName`: индекс может хранить и искать функцию как `methodName`
+- если qualified candidate дал `0`, проверь короткое имя и outline файла с владельцем метода
+- `callers <functionName>` хорошо показывает входы в функцию, но для overloaded/protocol/member methods результаты стоит сопоставить с файлом, типом и repo root
+- `usages <symbol>` полезен как соседний маршрут: он часто находит вызовы или references там, где `callers` слишком строгий или шумный
+- финальный вывод делай после сверки candidates с исходником или точечным диапазоном, а не только по одному нулевому `callers`
 
 ## Правило чтения больших файлов
 
@@ -228,11 +262,7 @@ ast-index outline <file>
    - `implementations`
    - `hierarchy`
    - `module`
-12. Для Android/iOS артефактов используй также:
-   - `xml-usages`
-   - `resource-usages`
-   - `swiftui`
-   - `async-funcs`
+12. Для Android/iOS артефактов используй также `async-funcs`.
 13. Читай исходники только точечно, когда AST уже привел тебя к конкретному файлу или символу.
 14. Расширяй AST-поиск только пока это реально добавляет structural evidence.
 15. Как только у тебя уже собраны entry points, 2-4 ключевых артефакта на платформу, central owners и основная execution path, переходи к сравнению.
