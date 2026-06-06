@@ -6,15 +6,17 @@
 
 К концу третьего этапа должны быть видны два implementation plan'а для одной задачи и operator/judge verdict: map-guided как strategy, grep-first как noisy baseline/literal appendix.
 
-## Reference Artifacts
+## Result Files
 
-Operator-only replay artifacts from a completed clean run:
+Каждый валидный прогон должен оставить screen-shareable файлы с тем, что агенты нашли:
 
 - `/Users/defendend/workshop/results/step-3/plan-map-guided.md`
 - `/Users/defendend/workshop/results/step-3/plan-grep-first.md`
 - `/Users/defendend/workshop/results/step-3/judge.md`
 
-Не добавляй эти файлы в стартовые prompts и не используй их как source of truth для нового валидного прогона.
+`plan-map-guided.md` и `plan-grep-first.md` пишут сами дочерние агенты в конце своих прогонов. `judge.md` пишет operator после сравнения финальных ответов.
+
+Эти файлы являются output текущего прогона, но не input: не добавляй их в стартовые prompts и не используй как source of truth для нового валидного прогона.
 
 Если пользователь просит:
 
@@ -91,6 +93,9 @@ Candidate-вариант валиден только если оба candidate-�
 6. Оба thread получают одинаковую product task.
 7. Нельзя добавлять в prompts `JUDGE_BENCHMARK.md` или результаты прошлых прогонов.
 8. Нельзя подсказывать конкретные implementation files/classes/owners в product task.
+9. Единственная разрешенная запись на диск для дочерних агентов третьего этапа:
+   - map-guided thread пишет `/Users/defendend/workshop/results/step-3/plan-map-guided.md`
+   - grep-first thread пишет `/Users/defendend/workshop/results/step-3/plan-grep-first.md`
 
 Если после старта был хотя бы один follow-up message:
 
@@ -193,7 +198,7 @@ Warning не должен ломать:
 Критично:
 - стартуй из root `/Users/defendend/workshop`
 - не пиши код
-- не редактируй файлы
+- не редактируй файлы, кроме собственного result artifact `/Users/defendend/workshop/results/step-3/plan-map-guided.md`
 - не используй grep/text search для architecture discovery
 - не используй `ast-index` для обязательного подтверждения карты или reconstruction
 - если карта явно недостаточна для одного конкретного пункта плана, можно указать это как uncertainty вместо запуска discovery
@@ -278,6 +283,12 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
 
 ## Final Recommendation
 Короткий recommended implementation strategy.
+
+Перед финальным ответом запиши тот же implementation plan в файл:
+
+- `/Users/defendend/workshop/results/step-3/plan-map-guided.md`
+
+Файл должен начинаться с краткого metadata-блока: thread title, mode, cwd, task name, timestamp если доступен, и пометка `Do not use as input for clean runs`.
 ```
 
 ## Стартовый Prompt B: Grep First
@@ -307,7 +318,7 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
 - Android root: `/Users/defendend/workshop/telegram-android`
 - iOS root: `/Users/defendend/workshop/telegram-ios`
 - не пиши код
-- не редактируй файлы
+- не редактируй файлы, кроме собственного result artifact `/Users/defendend/workshop/results/step-3/plan-grep-first.md`
 - используй только текстовый/file discovery: `rg --files`, `rg -n`, `find`, `ls`, `sed -n`
 - не используй `ast-index`
 - не используй `cd ... && ...`
@@ -386,6 +397,12 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
 
 ## Final Recommendation
 Короткий recommended implementation strategy.
+
+Перед финальным ответом запиши тот же implementation plan в файл:
+
+- `/Users/defendend/workshop/results/step-3/plan-grep-first.md`
+
+Файл должен начинаться с краткого metadata-блока: thread title, mode, cwd, task name, timestamp если доступен, и пометка `Do not use as input for clean runs`.
 ```
 
 ## Что Делать После Завершения
@@ -397,6 +414,7 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
    - thread стартовал из `/Users/defendend/workshop`
    - thread создан как `project + local`
    - финальный ответ является implementation plan, а не кодом
+   - на диске обновлен `/Users/defendend/workshop/results/step-3/plan-map-guided.md`
    - агент явно использовал architecture maps как input
    - в thread есть реальные tool/file reads markdown-карт
    - агент полагался на maps для выбора слоев/owners, а не реконструировал ownership заново
@@ -407,6 +425,7 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
    - thread стартовал из `/Users/defendend/workshop`
    - thread создан как `project + local`
    - финальный ответ является implementation plan, а не кодом
+   - на диске обновлен `/Users/defendend/workshop/results/step-3/plan-grep-first.md`
    - агент не читал architecture maps
    - агент не использовал `ast-index`
    - агент явно показал grep discovery strategy и uncertainty
@@ -423,6 +442,8 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
    - статус валидности
    - кто сильнее и почему
    - 2-4 наблюдения для воркшопа
+5. Перед итоговым ответом operator должен записать judge verdict текущего прогона в:
+   - `/Users/defendend/workshop/results/step-3/judge.md`
 
 ## Как Объяснять Третий Этап На Воркшопе
 

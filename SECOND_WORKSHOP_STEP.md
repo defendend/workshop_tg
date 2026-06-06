@@ -6,18 +6,17 @@
 
 К концу второго этапа должны появиться две candidate project architecture maps на диске.
 
-## Reference Artifacts
+## Fresh Run Outputs
 
 Generated artifacts for a fresh valid run:
 
 - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
 - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
-
-Operator-only replay index:
-
 - `/Users/defendend/workshop/results/step-2/architecture-maps.md`
 
-Не добавляй replay artifacts в стартовый prompt и не используй их как source of truth для нового валидного прогона.
+`architecture-maps.md` должен быть коротким demo-facing index/summary текущего прогона: thread id/title если известны, status, пути к двум candidate maps, краткая проверка required sections, tooling notes если были.
+
+Эти файлы являются output текущего прогона, но не input: не добавляй их в стартовый prompt и не используй как source of truth для нового валидного прогона.
 
 Если пользователь просит:
 
@@ -107,7 +106,9 @@ AST-first project discovery + grep confirmation + project architecture memory
 8. Thread должен создать или обновить два Markdown-файла именно в корне workspace `/Users/defendend/workshop`:
    - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
    - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
-9. Финальный результат считается недостаточным, если он:
+9. Thread должен создать или обновить demo-facing index текущего прогона:
+   - `/Users/defendend/workshop/results/step-2/architecture-maps.md`
+10. Финальный результат считается недостаточным, если он:
    - описывает только одну фичу
    - смешивает Android и iOS в одну карту без отдельных документов
    - просто перечисляет каталоги без ownership/boundaries
@@ -172,10 +173,14 @@ AST-first project discovery + grep confirmation + project architecture memory
 Цель: подготовить два полноценных Markdown-документа в финальном ответе:
 - `TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
 - `TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
+- `results/step-2/architecture-maps.md` как короткий demo-facing index текущего прогона
 
 Создай или обнови два Markdown-файла именно в корне workspace `/Users/defendend/workshop`:
 - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
 - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
+
+Создай или обнови также:
+- `/Users/defendend/workshop/results/step-2/architecture-maps.md`
 
 Не ограничивайся выводом markdown в финальном ответе: файлы должны реально появиться на диске именно по этим двум абсолютным путям.
 Не клади карты внутрь `telegram-android`, `telegram-ios`, `prompts`, `scripts` или любой другой подпапки.
@@ -243,7 +248,8 @@ AST-first project discovery + grep confirmation + project architecture memory
 1. Короткое summary о том, что две карты собраны и записаны на диск.
 2. Абсолютные пути созданных/обновленных файлов.
 3. Краткую проверку, что оба файла содержат required sections.
-4. `Tooling Notes` только если была существенная AST/tooling anomaly.
+4. Подтверждение, что `/Users/defendend/workshop/results/step-2/architecture-maps.md` обновлен для демо.
+5. `Tooling Notes` только если была существенная AST/tooling anomaly.
 
 Не вставляй полный текст двух карт в финальный ответ, если файлы уже записаны. Финальный ответ должен быть кратким operator report.
 
@@ -346,6 +352,8 @@ Generated code, JNI/Obj-C/C++/Swift wrappers, media/runtime engines, protobuf/TL
      - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
      - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
    - оба файла лежат в корне `/Users/defendend/workshop`, а не в подпапках проектов
+   - на диске существует demo-facing index:
+     - `/Users/defendend/workshop/results/step-2/architecture-maps.md`
 2. Проверить, что оба документа содержат:
    - purpose/scope
    - project mental model
@@ -374,7 +382,7 @@ Generated code, JNI/Obj-C/C++/Swift wrappers, media/runtime engines, protobuf/TL
 5. Итоговый ответ пользователю должен коротко сообщить:
    - thread id
    - статус валидности
-   - что две candidate project-level Markdown-карты собраны и записаны на диск
+   - что две candidate project-level Markdown-карты и demo-facing index собраны и записаны на диск
    - абсолютные пути файлов
 
 ## Как Объяснять Второй Этап На Воркшопе

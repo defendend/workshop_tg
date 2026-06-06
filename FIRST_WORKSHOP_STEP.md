@@ -6,15 +6,17 @@
 
 К концу первого этапа должны быть видны два сравнительных разбора `voice/video calls` и operator/judge verdict по методам.
 
-## Reference Artifacts
+## Result Files
 
-Operator-only replay artifacts from a completed clean run:
+Каждый валидный прогон должен оставить screen-shareable файлы с тем, что агенты нашли:
 
 - `/Users/defendend/workshop/results/step-1/calls-grep.md`
 - `/Users/defendend/workshop/results/step-1/calls-ast.md`
 - `/Users/defendend/workshop/results/step-1/judge.md`
 
-Не добавляй эти файлы в стартовые prompts и не используй их как source of truth для нового валидного прогона.
+`calls-grep.md` и `calls-ast.md` пишут сами дочерние агенты в конце своих прогонов. `judge.md` пишет operator после сравнения финальных ответов.
+
+Эти файлы являются output текущего прогона, но не input: не добавляй их в стартовые prompts и не используй как source of truth для нового валидного прогона.
 
 Если пользователь просит:
 
@@ -72,6 +74,10 @@ Operator-only replay artifacts from a completed clean run:
    - workspace root
    - имя фичи
    - обязательные root-instruction files
+   - собственный result file path
+8. Единственная разрешенная запись на диск для дочерних агентов первого этапа:
+   - grep-thread пишет `/Users/defendend/workshop/results/step-1/calls-grep.md`
+   - AST-thread пишет `/Users/defendend/workshop/results/step-1/calls-ast.md`
 
 Если после старта был хотя бы один follow-up message:
 
@@ -169,6 +175,12 @@ Optional integration appendix:
 - `High-Value Findings`
 - `Uncertainties`
 - `Integration Appendix (Optional)`
+
+Перед финальным ответом запиши тот же отчет в файл:
+
+- `/Users/defendend/workshop/results/step-1/calls-grep.md`
+
+Файл должен начинаться с краткого metadata-блока: thread title, mode, feature, cwd, timestamp если доступен, и пометка `Do not use as input for clean runs`.
 ```
 
 ## Стартовый Prompt: Calls AST Run Clean
@@ -259,6 +271,12 @@ Optional integration appendix:
 - `Uncertainties`
 - `Integration Appendix (Optional)`
 - только если есть реально существенная anomaly: короткий блок с точной парой `команда -> сырой вывод`
+
+Перед финальным ответом запиши тот же отчет в файл:
+
+- `/Users/defendend/workshop/results/step-1/calls-ast.md`
+
+Файл должен начинаться с краткого metadata-блока: thread title, mode, feature, cwd, timestamp если доступен, и пометка `Do not use as input for clean runs`.
 ```
 
 ## Что делать после завершения
@@ -276,9 +294,11 @@ Optional integration appendix:
    - качество сравнения Android vs iOS по самой фиче
    - качество метода `grep-only` vs `ast-first-confirm`
 3. Итоговый ответ пользователю должен опираться только на результаты текущих валидных прогонов, без ссылок на заранее зафиксированный “правильный” вывод
-4. Для judge/evaluation stage используй отдельный операторский файл:
+4. Перед итоговым ответом operator должен записать judge verdict текущего прогона в:
+   - `/Users/defendend/workshop/results/step-1/judge.md`
+5. Для judge/evaluation stage используй отдельный операторский файл:
    - `/Users/defendend/workshop/JUDGE_BENCHMARK.md`
-5. Этот judge-файл нельзя включать в стартовые промпты тредов и нельзя пересказывать агентам до завершения прогонов
+6. Этот judge-файл нельзя включать в стартовые промпты тредов и нельзя пересказывать агентам до завершения прогонов
 
 ## Как сравнивать методы
 
