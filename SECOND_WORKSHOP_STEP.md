@@ -2,6 +2,23 @@
 
 Этот файл — операционная инструкция для агента.
 
+## Demo Outcome
+
+К концу второго этапа должны появиться две candidate project architecture maps на диске.
+
+## Reference Artifacts
+
+Generated artifacts for a fresh valid run:
+
+- `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE_CANDIDATE.md`
+- `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE_CANDIDATE.md`
+
+Operator-only replay index:
+
+- `/Users/defendend/workshop/results/step-2/architecture-maps.md`
+
+Не добавляй replay artifacts в стартовый prompt и не используй их как source of truth для нового валидного прогона.
+
 Если пользователь просит:
 
 - запустить второй этап воркшопа

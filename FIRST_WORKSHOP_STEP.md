@@ -2,6 +2,20 @@
 
 Этот файл — операционная инструкция для агента.
 
+## Demo Outcome
+
+К концу первого этапа должны быть видны два сравнительных разбора `voice/video calls` и operator/judge verdict по методам.
+
+## Reference Artifacts
+
+Operator-only replay artifacts from a completed clean run:
+
+- `/Users/defendend/workshop/results/step-1/calls-grep.md`
+- `/Users/defendend/workshop/results/step-1/calls-ast.md`
+- `/Users/defendend/workshop/results/step-1/judge.md`
+
+Не добавляй эти файлы в стартовые prompts и не используй их как source of truth для нового валидного прогона.
+
 Если пользователь просит:
 
 - запустить первый воркшоп-кейс

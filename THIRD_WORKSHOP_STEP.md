@@ -2,6 +2,20 @@
 
 Этот файл - операционная инструкция для агента.
 
+## Demo Outcome
+
+К концу третьего этапа должны быть видны два implementation plan'а для одной задачи и operator/judge verdict: map-guided как strategy, grep-first как noisy baseline/literal appendix.
+
+## Reference Artifacts
+
+Operator-only replay artifacts from a completed clean run:
+
+- `/Users/defendend/workshop/results/step-3/plan-map-guided.md`
+- `/Users/defendend/workshop/results/step-3/plan-grep-first.md`
+- `/Users/defendend/workshop/results/step-3/judge.md`
+
+Не добавляй эти файлы в стартовые prompts и не используй их как source of truth для нового валидного прогона.
+
 Если пользователь просит:
 
 - запустить третий этап воркшопа
@@ -15,7 +29,7 @@
 
 - запускать два независимых local project thread
 - оба thread получают одну и ту же сложную cross-platform product task
-- вариант A использует выбранные project architecture maps и подтверждает owners через AST
+- вариант A использует выбранные project architecture maps как основную архитектурную память
 - вариант B не читает maps и начинает с grep-first discovery
 - после завершения сравнить результаты как operator/judge, не отправляя follow-up сообщения агентам
 
@@ -54,7 +68,7 @@ Candidate-вариант валиден только если оба candidate-�
 
 Третий этап не пишет код. Он должен показать разницу между двумя подходами к planning:
 
-- map-guided агент начинает с architecture memory, выбирает затронутые слои и подтверждает owners через AST
+- map-guided агент начинает с architecture memory и выбирает затронутые слои по карте
 - grep-first агент начинает с текстовых запросов вроде `video`, `camera`, `call`, `screencast` и должен сам выбрать owners из шума
 
 Ожидаемая демонстрационная разница:
@@ -159,29 +173,34 @@ Warning не должен ломать:
 ```text
 Работаем в `/Users/defendend/workshop`.
 
-Перед любой работой сначала прочитай:
+Перед любой работой сначала прочитай как обычные markdown-документы:
 - `/Users/defendend/workshop/WORKFLOW.md`
-- `/Users/defendend/workshop/AST_AGENT.md`
 - `/Users/defendend/workshop/TELEGRAM_ANDROID_ARCHITECTURE.md`
 - `/Users/defendend/workshop/TELEGRAM_IOS_ARCHITECTURE.md`
 
-Используй `TELEGRAM_ANDROID_ARCHITECTURE.md` и `TELEGRAM_IOS_ARCHITECTURE.md` как стартовую архитектурную память, но не как абсолютную истину.
-После чтения карт подтверди актуальных owners через AST.
+Важно про чтение файлов:
+- Markdown-инструкции и architecture maps (`*.md`) читай напрямую как документы.
+- Не вызывай `ast-index outline` для markdown-файлов, instruction files или architecture maps.
+- Для валидного прогона агент должен реально прочитать эти markdown-файлы через tool/file reads, а не отвечать без вызовов инструментов.
+
+Используй `TELEGRAM_ANDROID_ARCHITECTURE.md` и `TELEGRAM_IOS_ARCHITECTURE.md` как основную архитектурную память для planning.
+Не запускай обязательный AST-confirm карты: цель варианта A - проверить, помогает ли готовая architecture map планировать без повторного discovery.
 
 Это третий workflow AI workshop, вариант A: map-guided change planning.
 
-Режим: `map-guided AST confirm, grep literal confirm`.
+Режим: `map-guided planning from architecture maps`.
 
 Критично:
 - стартуй из root `/Users/defendend/workshop`
 - не пиши код
 - не редактируй файлы
 - не используй grep/text search для architecture discovery
-- AST нужен для подтверждения owners/callers/usages/current boundaries
-- grep разрешен только после AST confirmation и только для literal details: manifest/plist/permissions/strings/entitlements/exact keys
+- не используй `ast-index` для обязательного подтверждения карты или reconstruction
+- если карта явно недостаточна для одного конкретного пункта плана, можно указать это как uncertainty вместо запуска discovery
+- grep разрешен только для literal details: manifest/plist/permissions/strings/entitlements/exact keys
 - не используй `cd ... && ...`
-- перед чтением большого файла сначала делай `ast-index outline <file>`
 - не отправляй запросы обратно в этот thread; работай автономно
+- в ответе обязательно упомяни 3-6 конкретных signals, реально взятых из карт, а не общие догадки
 
 Задача:
 Нужно спроектировать изменение: при попытке начать видеозвонок или включить камеру в уже активном звонке показывать единый privacy/safety warning, если у пользователя включен новый флаг `video_call_privacy_warning_enabled`.
@@ -218,15 +237,15 @@ Warning не должен ломать:
 
 ## Android Plan
 ### Owners
-Какие owners нужно подтвердить через AST и за что они отвечают.
+Какие owners карта считает релевантными и за что они отвечают.
 ### Entry Points To Confirm
 Private outgoing video, in-call enable video, group camera, screencast/screen sharing.
 ### Likely Change Points
 Не больше 3-7 зон, с объяснением почему.
 ### Do Not Change
 Какие runtime/native/UI-only места не должны быть source of truth для warning policy.
-### AST Confirmation Needed
-Конкретные AST routes: callers/usages/outline/symbol/module.
+### Map-Based Assumptions / Uncertainties
+Какие выводы взяты из карты и что нужно будет подтвердить уже перед implementation, но не в этом planning-прогоне.
 ### Grep Confirmation Needed
 Только literal confirmation: permissions, strings, manifest, exact keys.
 ### Risks
@@ -234,15 +253,15 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
 
 ## iOS Plan
 ### Owners
-Какие owners нужно подтвердить через AST и за что они отвечают.
+Какие owners карта считает релевантными и за что они отвечают.
 ### Entry Points To Confirm
 Private outgoing video, in-call enable video, group camera, screencast/screen sharing, CallKit/incoming exclusion.
 ### Likely Change Points
 Не больше 3-7 зон, с объяснением почему.
 ### Do Not Change
 Какие runtime/native/UI-only места не должны быть source of truth для warning policy.
-### AST Confirmation Needed
-Конкретные AST routes: callers/usages/outline/symbol/module.
+### Map-Based Assumptions / Uncertainties
+Какие выводы взяты из карты и что нужно будет подтвердить уже перед implementation, но не в этом planning-прогоне.
 ### Grep Confirmation Needed
 Только literal confirmation: plist, entitlements, strings, exact keys.
 ### Risks
@@ -379,7 +398,9 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
    - thread создан как `project + local`
    - финальный ответ является implementation plan, а не кодом
    - агент явно использовал architecture maps как input
-   - агент подтвердил owners через AST
+   - в thread есть реальные tool/file reads markdown-карт
+   - агент полагался на maps для выбора слоев/owners, а не реконструировал ownership заново
+   - агент не запускал обязательный AST-confirm карты
    - grep использован только для literal confirmation или не использован вовсе
 2. Считать grep-first прогон валидным только если:
    - не было follow-up вмешательств
@@ -410,7 +431,7 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
 1. Первый этап показал, что grep-first плохо восстанавливает architecture ownership.
 2. Второй этап построил reusable project maps.
 3. Третий этап проверяет, превращают ли maps сложную planning-задачу из поиска в навигацию.
-4. Map-guided агент читает карту, выбирает затронутые слои, подтверждает owners через AST и только потом добирает literals.
+4. Map-guided агент читает карту, выбирает затронутые слои и сразу планирует изменение, добирая только literals при необходимости.
 5. Grep-first агент начинает с слов `video`, `camera`, `call`, `screencast` и вынужден вручную выбираться из шума.
 
 ## Что Не Делать
@@ -421,4 +442,4 @@ Private outgoing video, in-call enable video, group camera, screencast/screen sh
 - не писать код
 - не подсказывать конкретные implementation files
 - не просить агентов менять файлы
-- не считать карты абсолютной истиной без AST confirmation
+- не превращать map-guided вариант обратно в AST-discovery/AST-confirm прогон
